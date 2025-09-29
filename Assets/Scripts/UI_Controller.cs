@@ -20,11 +20,12 @@ public class UI_Controller : MonoSingleton<UI_Controller>
     [SerializeField] GameObject Player;
     [SerializeField] GameObject Npc;
     Human player;
+    Human[] npc;
 
     int curStepIndex = -1;
     public int[] QueueStatus = new int[12];
     Coroutine displayTipCor;
-    Coroutine delayCallbackCor;
+
     private void Start()
     {
         ShowPage(0);
@@ -35,6 +36,17 @@ public class UI_Controller : MonoSingleton<UI_Controller>
         player.Init();
         player.OnArrive += OnPlayerArrived;
         PlayerWalk(1);
+
+        // 初始化NPC 3个
+        for (int i = 1; i < 3; i++) {
+            npc[i]=Instantiate(Npc, pages[0].transform).GetComponent<Human>();
+            npc[i].transform.SetSiblingIndex(pages[0].transform.childCount - 2);
+            npc[i].OnArrive += OnNPCArrived;
+        }
+    }
+    private void OnNPCArrived(int obj)
+    {
+
     }
 
     void NPCWalk(Human npc, int tarPosIndex)
@@ -42,8 +54,7 @@ public class UI_Controller : MonoSingleton<UI_Controller>
         // 若前方堵塞，则等待并且延迟回调访问
         if (QueueStatus[tarPosIndex] == 1)
         {
-            if (delayCallbackCor != null) StopCoroutine(delayCallbackCor);
-            delayCallbackCor = StartCoroutine(DelayCallback(tarPosIndex));
+            npc.DelayCallback(() => PlayerWalk(tarPosIndex));
             return;
         }
 
@@ -87,19 +98,12 @@ public class UI_Controller : MonoSingleton<UI_Controller>
         }
     }
 
-    IEnumerator DelayCallback(int tarPosIndex)
-    {
-        yield return new WaitForSeconds(1f);
-        PlayerWalk(tarPosIndex);
-    }
-
     void PlayerWalk(int tarPosIndex)
     {
         // 若前方堵塞，则等待并且延迟回调访问
         if (QueueStatus[tarPosIndex] == 1)
         {
-            if (delayCallbackCor != null) StopCoroutine(delayCallbackCor);
-            delayCallbackCor=StartCoroutine(DelayCallback(tarPosIndex));
+            player.DelayCallback(()=> PlayerWalk(tarPosIndex));
             return;
         }
 

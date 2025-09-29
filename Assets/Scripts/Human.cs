@@ -12,6 +12,7 @@ public class Human : MonoBehaviour
     Animator animator;
     Image humanImg;
     Coroutine WalkingCor;
+    Coroutine delayCallbackCor;
     bool isWalking;
     public Action<int> OnArrive;
     public void Init()
@@ -60,4 +61,15 @@ public class Human : MonoBehaviour
 
     }
 
+    public void DelayCallback(Action onWaitOver)
+    {
+        if (delayCallbackCor != null) StopCoroutine(delayCallbackCor);
+        delayCallbackCor = StartCoroutine(DelayCallbackCor(onWaitOver));
+        
+    }
+    IEnumerator DelayCallbackCor(Action onWaitOver)
+    {
+        yield return new WaitForSeconds(1f);
+        onWaitOver?.Invoke();
+    }
 }
