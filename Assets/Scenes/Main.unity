@@ -1138,6 +1138,7 @@ MonoBehaviour:
   tipImg: {fileID: 1918186045}
   Player: {fileID: 6185571417364979049, guid: 4d7a392d86bcbd84d83d649f230e40e5, type: 3}
   Npc: {fileID: 8624904594658075537, guid: e43290861638d754aa1911ce0666dcb9, type: 3}
+  showTipDuration: 4
   QueueStatus: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 --- !u!4 &708499573
 Transform:
@@ -1616,7 +1617,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2416199871598626844, guid: e893aefd93740714b999573b02916984, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2416199871598626845, guid: e893aefd93740714b999573b02916984, type: 3}
       propertyPath: _isTopmost

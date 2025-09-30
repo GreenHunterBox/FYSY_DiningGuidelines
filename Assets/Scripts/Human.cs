@@ -8,13 +8,13 @@ public class Human : MonoBehaviour
     [Range(0, 5)][SerializeField] float speed = 1;
     [SerializeField] Sprite[] spr;
 
-    int curPosIndex;
+    public int CurPosIndex { get; set; }
     Animator animator;
     Image humanImg;
     Coroutine WalkingCor;
     Coroutine delayCallbackCor;
     bool isWalking;
-    public Action<int> OnArrive;
+    public Action<Human> OnArrive;
     public void Init()
     {
         humanImg = GetComponentInChildren<Image>();
@@ -31,19 +31,18 @@ public class Human : MonoBehaviour
     {
         isWalking = true;
         // 当处于最后1个点位时，重置
-        if (curPosIndex + 1 >= UI_Controller.Instance.posRectt.Length)
+        if (CurPosIndex + 1 >= UI_Controller.Instance.posRectt.Length)
         {
-            curPosIndex = 0;
-            for (int i = 0;i< UI_Controller.Instance.QueueStatus.Length;i++)UI_Controller.Instance.QueueStatus[i] = 0;
-        
+            UI_Controller.Instance.QueueStatus[CurPosIndex]--;
+            CurPosIndex = 0;
         }
-        
+
         animator.SetBool("walking",true);
         isWalking = true;
-        UI_Controller.Instance.QueueStatus[curPosIndex] = 0;
-        UI_Controller.Instance.QueueStatus[curPosIndex+1] =1;
-        Vector3 curPos = UI_Controller.Instance.posRectt[curPosIndex].position;
-        Vector3 tarPos = UI_Controller.Instance.posRectt[curPosIndex+1].position;
+        if(CurPosIndex!=0) UI_Controller.Instance.QueueStatus[CurPosIndex]--;
+        UI_Controller.Instance.QueueStatus[CurPosIndex+1]++;
+        Vector3 curPos = UI_Controller.Instance.posRectt[CurPosIndex].position;
+        Vector3 tarPos = UI_Controller.Instance.posRectt[CurPosIndex+1].position;
 
         humanImg.rectTransform.parent.localScale = reverseWalkSpr? new Vector3(-1,1,1):Vector3.one;
         humanImg.sprite = spr[walkSprId];
@@ -54,10 +53,10 @@ public class Human : MonoBehaviour
         }
         humanImg.sprite = spr[onArriveSprId];
         animator.SetBool("walking", false);
-        curPosIndex++;
+        CurPosIndex++;
         isWalking = false;
 
-        OnArrive?.Invoke(curPosIndex);
+        OnArrive?.Invoke(this);
 
     }
 

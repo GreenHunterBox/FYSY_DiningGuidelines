@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class UI_Controller : MonoSingleton<UI_Controller>
 {
@@ -20,13 +21,14 @@ public class UI_Controller : MonoSingleton<UI_Controller>
     [SerializeField] GameObject Player;
     [SerializeField] GameObject Npc;
     Human player;
-    Human[] npc;
+    Human[] npc=new Human[3];
 
+    [Range(1, 10)][SerializeField] float showTipDuration=3;
     int curStepIndex = -1;
     public int[] QueueStatus = new int[12];
     Coroutine displayTipCor;
 
-    private void Start()
+    IEnumerator Start()
     {
         ShowPage(0);
         tipImg.rectTransform.localScale = Vector3.zero;
@@ -38,23 +40,44 @@ public class UI_Controller : MonoSingleton<UI_Controller>
         PlayerWalk(1);
 
         // 初始化NPC 3个
-        for (int i = 1; i < 3; i++) {
+        for (int i = 0; i < 3; i++) {
             npc[i]=Instantiate(Npc, pages[0].transform).GetComponent<Human>();
+            npc[i].Init();
             npc[i].transform.SetSiblingIndex(pages[0].transform.childCount - 2);
             npc[i].OnArrive += OnNPCArrived;
+
         }
+
+        yield return new WaitForSeconds(Random.Range(5,10));
+        NPCWalk(npc[0]);
+        yield return new WaitForSeconds(Random.Range(5, 20));
+        NPCWalk(npc[1]);
+        yield return new WaitForSeconds(Random.Range(5, 20));
+        NPCWalk(npc[2]);
     }
-    private void OnNPCArrived(int obj)
+    void OnNPCArrived(Human npc)
     {
+        if (npc.CurPosIndex!=1 && npc.CurPosIndex != 5 && npc.CurPosIndex != 9 && npc.CurPosIndex != 10)
+        {
+            StartCoroutine(DelyNPCWalk(npc));
+        }else
+        {
+            NPCWalk(npc);
+        }
 
     }
-
-    void NPCWalk(Human npc, int tarPosIndex)
+    IEnumerator DelyNPCWalk(Human npc)
+    {
+        yield return new WaitForSeconds(Random.Range(2,4));
+        NPCWalk(npc);
+    }
+    void NPCWalk(Human npc)
     {
         // 若前方堵塞，则等待并且延迟回调访问
-        if (QueueStatus[tarPosIndex] == 1)
+        int tarPosIndex = npc.CurPosIndex + 1>=11?1:npc.CurPosIndex+1;
+        if (QueueStatus[tarPosIndex]>0)
         {
-            npc.DelayCallback(() => PlayerWalk(tarPosIndex));
+            npc.DelayCallback(() => NPCWalk(npc));
             return;
         }
 
@@ -101,7 +124,7 @@ public class UI_Controller : MonoSingleton<UI_Controller>
     void PlayerWalk(int tarPosIndex)
     {
         // 若前方堵塞，则等待并且延迟回调访问
-        if (QueueStatus[tarPosIndex] == 1)
+        if (QueueStatus[tarPosIndex]>0)
         {
             player.DelayCallback(()=> PlayerWalk(tarPosIndex));
             return;
@@ -153,9 +176,9 @@ public class UI_Controller : MonoSingleton<UI_Controller>
                 break;
         }
     }
-    private void OnPlayerArrived(int curPosIndex)
+    private void OnPlayerArrived(Human player)
     {
-        switch (curPosIndex)
+        switch (player.CurPosIndex)
         {
             case 1:
                 PlayerWalk(2);
@@ -180,6 +203,7 @@ public class UI_Controller : MonoSingleton<UI_Controller>
                 break;
             case 8:
                 ShowTip(5, 836, () => PlayerWalk(9));
+                player.transform.SetSiblingIndex(2);//前渲染
                 break;
             case 9:
                 PlayerWalk(10);
@@ -189,6 +213,7 @@ public class UI_Controller : MonoSingleton<UI_Controller>
                 break;
             case 11:
                 PlayerWalk(1);
+                player.transform.SetSiblingIndex(pages[0].transform.childCount - 2);//前渲染
                 break;
             default:
                 break;
@@ -214,7 +239,7 @@ public class UI_Controller : MonoSingleton<UI_Controller>
             tipImg.rectTransform.localScale = Vector3.Lerp(Vector3.zero, Vector3.one, timer / duration);
             yield return null;
         }
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(showTipDuration);
         timer = 0;
         while (timer < duration)
         {
@@ -237,8 +262,6 @@ public class UI_Controller : MonoSingleton<UI_Controller>
         Img_steps[curStepIndex].sprite = nor_steps[curStepIndex];
         curStepIndex = -1;
     }
-
-
 
     void ShowPage(int i) { for (int j = 0; j < pages.Length; j++) pages[j].SetActive(j == i); }
     T LoadData<T>(string fileName) where T : new()
