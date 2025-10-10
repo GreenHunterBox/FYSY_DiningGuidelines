@@ -250,7 +250,6 @@ public class UI_Controller : MonoSingleton<UI_Controller>
         onCompleted?.Invoke();
     }
 
-
     void NextStep()
     {
         if (curStepIndex >= 0) Img_steps[curStepIndex].sprite = nor_steps[curStepIndex];

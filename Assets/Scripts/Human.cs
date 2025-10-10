@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class Human : MonoBehaviour
 {
-    [Range(0, 5)][SerializeField] float speed = 1;
+    float speed = 800;
     [SerializeField] Sprite[] spr;
 
     public int CurPosIndex { get; set; }
@@ -47,10 +47,21 @@ public class Human : MonoBehaviour
         humanImg.rectTransform.parent.localScale = reverseWalkSpr? new Vector3(-1,1,1):Vector3.one;
         humanImg.sprite = spr[walkSprId];
 
-        while (transform.position!= tarPos) {
-            transform.position=Vector3.MoveTowards(transform.position, tarPos, speed);
+        float walkTime= Vector3.Distance(curPos, tarPos)/ speed;
+        float timer = 0;
+        Debug.Log(walkTime);
+        while (timer< walkTime)
+        {
+            timer += Time.fixedDeltaTime;
+
+            transform.position = Vector3.Lerp(curPos, tarPos, timer/ walkTime);
             yield return null;
         }
+
+        //while (transform.position!= tarPos) {
+        //    transform.position=Vector3.MoveTowards(transform.position, tarPos, speed);
+        //    yield return null;
+        //}
         humanImg.sprite = spr[onArriveSprId];
         animator.SetBool("walking", false);
         CurPosIndex++;
